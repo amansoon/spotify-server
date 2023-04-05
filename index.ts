@@ -8,6 +8,9 @@ import qs from "qs";
 dotenv.config();
 
 const app = express();
+app.use(cors({ credentials: true}));
+app.use(cookieParser());
+
 
 const CLIENT_ID = process.env.CLIENT_ID as string;
 const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
@@ -55,7 +58,7 @@ app.get("/callback", async (req, res) => {
   console.log("stored state =", storedState);
 
   // Error occurred OR access denied
-  if (state === null) {
+  if (state === null || state !== storedState) {
     return res.redirect("/#" + "error=state_mismatch");
   }
   try {
@@ -99,9 +102,6 @@ app.get("/refresh_token", async (req, res) => {
   }
 });
 
-
-app.use(cors({ credentials: true, methods: ["GET", "PUT", "POST"] }));
-app.use(cookieParser());
 
 
 app.listen(8000, () => {
