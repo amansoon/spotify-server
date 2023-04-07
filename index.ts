@@ -1,7 +1,6 @@
 import express, { response } from "express";
 import dotenv from "dotenv";
 import axios from "axios";
-import cookie from "cookie";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import qs from "qs";
@@ -33,7 +32,37 @@ app.get("/login", function (req, res) {
   res.cookie(stateKey, state);
 
   // your application requests authorization
-  const scope = "user-read-private user-read-email";
+  const scopeList = [
+    // image
+    "ugc-image-upload",
+    // spotify connect
+    "user-read-playback-state",
+    "user-modify-playback-state",
+    "user-read-currently-playing",
+    // playback
+    "app-remote-control",
+    "streaming",
+    // playlist
+    "playlist-read-private",
+    "playlist-read-collaborative",
+    "playlist-modify-private",
+    "playlist-modify-public",
+    // follow
+    "user-follow-modify",
+    "user-follow-read",
+    // listening history
+    "user-read-playback-position",
+    "user-top-read",
+    "user-read-recently-played",
+    // library
+    "user-library-modify",
+    "user-library-read",
+    // users
+    "user-read-email",
+    "user-read-private",
+  ]
+
+  const scope = scopeList.join(' ')
 
   const info = {
     response_type: "code",
@@ -46,16 +75,12 @@ app.get("/login", function (req, res) {
   res.redirect("https://accounts.spotify.com/authorize?" + qs.stringify(info));
 });
 
-// Accessing Access Token
+
+// Get Access Token
 app.get("/callback", async (req, res) => {
   const code = req.query.code || null;
   const state = req.query.state || null;
   const storedState = req.cookies ? req.cookies[stateKey] : null;
-
-  console.log("cookies =", req.cookies);
-  console.log("code =", code);
-  console.log("state =", state);
-  console.log("stored state =", storedState);
 
   // Error occurred OR access denied
   if (state === null || state !== storedState) {
@@ -75,8 +100,7 @@ app.get("/callback", async (req, res) => {
     });
     res.send(response.data);
   } catch (error) {
-    console.log(error);
-    res.send("failed");
+    res.send({status: "FAILED"});
   }
 });
 
@@ -101,7 +125,6 @@ app.get("/refresh_token", async (req, res) => {
     res.send("Failed");
   }
 });
-
 
 
 app.listen(8000, () => {
